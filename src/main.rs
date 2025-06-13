@@ -1,68 +1,25 @@
-// Code minimal pour ouvrir une fenêtre X11 en Rust
 // Direct Rendering Manager
 // libdrm
+// https://www.kernel.org/doc/html/v4.11/gpu/drm-internals.html
+// Fonction pour dessiner une ligne avec l'algorithme de Bresenham
+// Affiche un point rouge au centre de l'écran avec le framebuffer (/dev/fb0)
+// KMS
+// OpenCL / pour le traitement sur le GPU
+// apt-get install ocl-icd-opencl-dev
 
-use std::ptr;
-use x11::xlib;
+mod ApiGraphique;
+use crate::ApiGraphique::Buffer::FrammeBufferDevice::FrameBufferDevice;
 
-fn main() {
-   
-    unsafe {
-        let display = xlib::XOpenDisplay(ptr::null());
-        if display.is_null() {
-            eprintln!("Impossible d'ouvrir le display X11");
-            return;
-        }
+use std::io::Result;
 
-        let screen = xlib::XDefaultScreen(display);
-        let win = xlib::XCreateSimpleWindow(
-            display,
-            xlib::XRootWindow(display, screen),
-            100, 100, 400, 300, 1,
-            xlib::XBlackPixel(display, screen), // couleur du bord
-            xlib::XBlackPixel(display, screen), // couleur de fond (noir)
-        );
+fn main() -> Result<()> {
+    let mut framebuffer = FrameBufferDevice::new(1366, 768, 0)?; // Crée un nouveau framebuffer avec une largeur de 800 pixels et une hauteur de 600 pixels
 
-        // Demander à recevoir les événements d'exposition et de touche
-        xlib::XSelectInput(
-            display,
-            win,
-            xlib::ExposureMask | xlib::KeyPressMask,
-        );
-
-        xlib::XMapWindow(display, win);
-
-        // Créer un GC
-        let gc = xlib::XCreateGC(display, win, 0, std::ptr::null_mut());
-
-        // Définir la couleur rouge
-        let mut color: xlib::XColor = std::mem::zeroed();
-        let colormap = xlib::XDefaultColormap(display, screen);
-        let color_name = std::ffi::CString::new("red").unwrap();
-        if xlib::XAllocNamedColor(display, colormap, color_name.as_ptr(), &mut color, &mut color) != 0 {
-            xlib::XSetForeground(display, gc, color.pixel);
-        }
-
-        // Boucle d'événements : dessiner la ligne à chaque Expose
-        let mut event: xlib::XEvent = std::mem::zeroed();
-        loop {
-            xlib::XNextEvent(display, &mut event);
-            match event.get_type() {
-                t if t == xlib::Expose => {
-                    // Redessiner la ligne rouge horizontale au centre
-                    xlib::XDrawLine(display, win, gc, 50, 150, 350, 150);
-                }
-                t if t == xlib::KeyPress => {
-                    break;
-                }
-                _ => {}
-            }
-        }
-
-        // Libérer le GC
-        xlib::XFreeGC(display, gc);
-
-        xlib::XDestroyWindow(display, win);
-        xlib::XCloseDisplay(display);
+    
+    // Remplit tout l'écran en blanc (XRGB8888)
+    for pixel in framebuffer.iter_mut() {
+        *pixel = 0x00FFFFFF;
     }
+    
+    Ok(())
 }
