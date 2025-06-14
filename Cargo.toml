@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 drm = "0.14.1"
+drm-sys = "0.8.0"
 libc = "0.2.173"
 ocl = "0.19.7"
 
