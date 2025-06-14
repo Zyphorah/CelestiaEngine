@@ -7,11 +7,11 @@
 // OpenCL / pour le traitement sur le GPU
 // apt-get install ocl-icd-opencl-dev
 
-mod ApiGraphique;
-use crate::ApiGraphique::Buffer::FrameBufferDevice::FrameBufferDevice; // Correction du nom du module
-use crate::ApiGraphique::FormePrimitive::Ligne::Ligne; // Import de Ligne
-use crate::ApiGraphique::FormePrimitive::Pixel::Pixel;
-use crate::ApiGraphique::FormePrimitive::IForme::IForme; // Import du trait IForme
+mod api_graphique; // Renommé en snake_case
+use crate::api_graphique::buffer::frame_buffer_device::FrameBufferDevice; // Renommé en snake_case
+use crate::api_graphique::forme_primitive::ligne::Ligne; // Renommé en snake_case
+use crate::api_graphique::forme_primitive::pixel::Pixel; // Renommé en snake_case
+use crate::api_graphique::forme_primitive::iforme::IForme; // Renommé en snake_case
 use std::f32::consts::PI;
 use std::thread::sleep;
 use std::time::Duration;
@@ -23,14 +23,8 @@ fn main() -> Result<(), std::io::Error> {
     // Récupère les informations nécessaires
     let stride_pixels = framebuffer.stride_pixels;
     let height = framebuffer.height;
-    let xoffset = framebuffer.xoffset;
-    let yoffset = framebuffer.yoffset;
-
-    // Affiche les informations récupérées
-    println!(
-        "Framebuffer info: width: {}, height: {}, stride_pixels: {}, xoffset: {}, yoffset: {}",
-        framebuffer.width, framebuffer.height, framebuffer.stride_pixels, framebuffer.xoffset, framebuffer.yoffset
-    );
+    let _xoffset = framebuffer.xoffset; // Préfixé avec un underscore
+    let _yoffset = framebuffer.yoffset; // Préfixé avec un underscore
 
     // Efface le framebuffer avec du noir
     for pixel in framebuffer.iter_mut() {
@@ -38,17 +32,17 @@ fn main() -> Result<(), std::io::Error> {
     }
 
     // Animation de rotation
-    let pixel = Pixel;
+    let _pixel = Pixel; // Préfixé avec un underscore
     let mut angle: f32 = 0.0; // Ajout de l'annotation de type explicite
-    let center_x = 350.0;
-    let center_y = 350.0;
-    let radius = 150.0;
+    let center_x = 150.0;
+    let center_y = 150.0;
+    let length = 150.0; // Longueur de la ligne
 
     // Variables pour stocker les coordonnées précédentes
-    let mut prev_x1 = center_x + radius * (angle).cos();
-    let mut prev_y1 = center_y + radius * (angle).sin();
-    let mut prev_x2 = center_x + radius * ((angle + PI / 2.0).cos());
-    let mut prev_y2 = center_y + radius * ((angle + PI / 2.0).sin());
+    let mut prev_x1 = center_x - (length / 2.0) * (angle).cos();
+    let mut prev_y1 = center_y - (length / 2.0) * (angle).sin();
+    let mut prev_x2 = center_x + (length / 2.0) * (angle).cos();
+    let mut prev_y2 = center_y + (length / 2.0) * (angle).sin();
 
     loop {
         // Efface uniquement la ligne précédente en dessinant avec une couleur de fond (noir)
@@ -61,10 +55,10 @@ fn main() -> Result<(), std::io::Error> {
         .dessiner(framebuffer.iter_mut(), stride_pixels, height, 0x00000000, 5); // Efface avec du noir
 
         // Calcule les nouvelles coordonnées avec la matrice de rotation
-        let x1 = center_x + radius * (angle).cos();
-        let y1 = center_y + radius * (angle).sin();
-        let x2 = center_x + radius * ((angle + PI / 2.0).cos());
-        let y2 = center_y + radius * ((angle + PI / 2.0).sin());
+        let x1 = center_x - (length / 2.0) * (angle).cos();
+        let y1 = center_y - (length / 2.0) * (angle).sin();
+        let x2 = center_x + (length / 2.0) * (angle).cos();
+        let y2 = center_y + (length / 2.0) * (angle).sin();
 
         // Dessine la nouvelle ligne avec rotation
         Ligne {
@@ -73,7 +67,7 @@ fn main() -> Result<(), std::io::Error> {
             x2: x2 as i32,
             y2: y2 as i32,
         }
-        .dessiner(framebuffer.iter_mut(), stride_pixels, height, 0x00FF0000, 1);
+        .dessiner(framebuffer.iter_mut(), stride_pixels, height, 0x00FFFFFF, 1);
 
         // Met à jour les coordonnées précédentes
         prev_x1 = x1;
