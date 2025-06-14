@@ -1,77 +1,29 @@
-// Direct Rendering Manager
-// libdrm
-// https://www.kernel.org/doc/html/v4.11/gpu/drm-internals.html
-// Fonction pour dessiner une ligne avec l'algorithme de Bresenham
-// Affiche un point rouge au centre de l'écran avec le framebuffer (/dev/fb0)
-// KMS
-// OpenCL / pour le traitement sur le GPU
-// apt-get install ocl-icd-opencl-dev
-
 mod ApiGraphique;
 use crate::ApiGraphique::Buffer::FrammeBufferDevice::FrameBufferDevice;
-use crate::ApiGraphique::FormePrimitive::Ligne::Ligne; // Import de Ligne
-use crate::ApiGraphique::FormePrimitive::Pixel::Pixel;
+use crate::ApiGraphique::FormePrimitive::Ligne::Ligne;
 use crate::ApiGraphique::FormePrimitive::IForme::IForme; // Import du trait IForme
-use std::f32::consts::PI;
-use std::thread::sleep;
-use std::time::Duration;
 
-fn main() -> Result<(), std::io::Error> {
+fn main() {
     // Crée le framebuffer
-    let mut framebuffer = FrameBufferDevice::new(0)?;
+    let mut framebuffer = FrameBufferDevice::new(0).expect("Erreur lors de la création du framebuffer");
 
-    // Récupère les informations nécessaires
+    // Affiche le stride (par exemple, framebuffer.stride_pixels)
+    println!("Stride : {:?}", framebuffer.stride_pixels);
+
+    // Emprunte les champs nécessaires avant l'appel à iter_mut
     let stride_pixels = framebuffer.stride_pixels;
     let height = framebuffer.height;
-    let xoffset = framebuffer.xoffset;
-    let yoffset = framebuffer.yoffset;
 
-    // Affiche les informations récupérées
-    println!(
-        "Framebuffer info: width: {}, height: {}, stride_pixels: {}, xoffset: {}, yoffset: {}",
-        framebuffer.width, framebuffer.height, framebuffer.stride_pixels, framebuffer.xoffset, framebuffer.yoffset
+    Ligne {
+         x1: 100,
+         y1: 100,
+         x2: 0,
+         y2: 0
+    }.dessiner(
+        framebuffer.iter_mut(),
+        stride_pixels,
+        height,
+        0xFF0000, // Couleur rouge
+        1, // Épaisseur de 1 pixel
     );
-
-    // Efface le framebuffer avec du noir
-    for pixel in framebuffer.iter_mut() {
-        *pixel = 0x00000000;
-    }
-
-    // Animation de rotation
-    let pixel = Pixel;
-    let mut angle: f32 = 0.0; // Ajout de l'annotation de type explicite
-    let center_x = 350.0;
-    let center_y = 350.0;
-    let radius = 150.0;
-
-    loop {
-        // Efface le framebuffer
-        for pixel in framebuffer.iter_mut() {
-            *pixel = 0x00000000;
-        }
-
-        // Calcule les nouvelles coordonnées avec la matrice de rotation
-        let x1 = center_x + radius * (angle).cos();
-        let y1 = center_y + radius * (angle).sin();
-        let x2 = center_x + radius * ((angle + PI / 2.0).cos());
-        let y2 = center_y + radius * ((angle + PI / 2.0).sin());
-
-        // Dessine la ligne avec rotation
-        Ligne {
-            x1: x1 as i32,
-            y1: y1 as i32,
-            x2: x2 as i32,
-            y2: y2 as i32,
-        }
-        .dessiner(framebuffer.iter_mut(), stride_pixels+10, height, 0x00FF0000, 5);
-
-        // Incrémente l'angle pour la prochaine rotation
-        angle += 0.1;
-        if angle > 2.0 * PI {
-            angle -= 2.0 * PI;
-        }
-
-        // Pause pour ralentir l'animation
-        sleep(Duration::from_millis(50));
-    }
 }
