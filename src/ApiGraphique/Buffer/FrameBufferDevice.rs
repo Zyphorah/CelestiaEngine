@@ -130,11 +130,6 @@ impl FrameBufferDevice {
             )
         }
     }
-
-    /// Retourne un pointeur mutable vers la mémoire mappée
-    pub fn fb_ptr_mut(&mut self) -> *mut c_void {
-        self.fb_ptr
-    }
 }
 
 impl Drop for FrameBufferDevice {
@@ -142,8 +137,10 @@ impl Drop for FrameBufferDevice {
         // Libère la mémoire mappée
         if !self.fb_ptr.is_null() {
             unsafe {
-                if munmap(self.fb_ptr, self.fb_size) != 0 {
-                    eprintln!("Erreur lors de la libération de la mémoire mappée");
+                if munmap(self.fb_ptr, self.fb_size) == 0 {
+                    println!("Mémoire mappée libérée avec succès.");
+                } else {
+                    eprintln!("Erreur lors de la libération de la mémoire mappée.");
                 }
             }
         }

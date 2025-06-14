@@ -1,1 +1,1 @@
-pub mod FrammeBufferDevice;
+pub mod FrameBufferDevice;
