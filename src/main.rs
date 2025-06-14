@@ -12,9 +12,11 @@ use crate::ApiGraphique::Buffer::FrammeBufferDevice::FrameBufferDevice;
 use crate::ApiGraphique::FormePrimitive::Ligne::Ligne; // Import de Ligne
 use crate::ApiGraphique::FormePrimitive::Pixel::Pixel;
 use crate::ApiGraphique::FormePrimitive::IForme::IForme; // Import du trait IForme
-use std::io::Result;
+use std::f32::consts::PI;
+use std::thread::sleep;
+use std::time::Duration;
 
-fn main() -> Result<()> {
+fn main() -> Result<(), std::io::Error> {
     // Crée le framebuffer
     let mut framebuffer = FrameBufferDevice::new(0)?;
 
@@ -29,28 +31,47 @@ fn main() -> Result<()> {
         "Framebuffer info: width: {}, height: {}, stride_pixels: {}, xoffset: {}, yoffset: {}",
         framebuffer.width, framebuffer.height, framebuffer.stride_pixels, framebuffer.xoffset, framebuffer.yoffset
     );
+
+    // Efface le framebuffer avec du noir
     for pixel in framebuffer.iter_mut() {
-        *pixel = 0x00000000; // Efface le framebuffer avec du noir
+        *pixel = 0x00000000;
     }
-    // Test de pixels simples pour diagnostiquer le problème
+
+    // Animation de rotation
     let pixel = Pixel;
-    pixel.dessiner(framebuffer.iter_mut(), stride_pixels, height, 0x00FF0000, 0, 0, xoffset, yoffset); // Rouge coin haut gauche
-    pixel.dessiner(framebuffer.iter_mut(), stride_pixels, height, 0x0000FF00, 1, 0, xoffset, yoffset); // Vert à droite du rouge
-    pixel.dessiner(framebuffer.iter_mut(), stride_pixels, height, 0x000000FF, 0, 1, xoffset, yoffset); // Bleu en dessous du rouge
+    let mut angle: f32 = 0.0; // Ajout de l'annotation de type explicite
+    let center_x = 350.0;
+    let center_y = 350.0;
+    let radius = 150.0;
 
-    // Dessine 20 lignes empilées l'une sur l'autre
-    for i in 0..200 {
-        pixel.dessiner(framebuffer.iter_mut(), stride_pixels + 10, height, 0x00FF0000, 100, i, xoffset, yoffset);
+    loop {
+        // Efface le framebuffer
+        for pixel in framebuffer.iter_mut() {
+            *pixel = 0x00000000;
+        }
+
+        // Calcule les nouvelles coordonnées avec la matrice de rotation
+        let x1 = center_x + radius * (angle).cos();
+        let y1 = center_y + radius * (angle).sin();
+        let x2 = center_x + radius * ((angle + PI / 2.0).cos());
+        let y2 = center_y + radius * ((angle + PI / 2.0).sin());
+
+        // Dessine la ligne avec rotation
+        Ligne {
+            x1: x1 as i32,
+            y1: y1 as i32,
+            x2: x2 as i32,
+            y2: y2 as i32,
+        }
+        .dessiner(framebuffer.iter_mut(), stride_pixels+10, height, 0x00FF0000, 5);
+
+        // Incrémente l'angle pour la prochaine rotation
+        angle += 0.1;
+        if angle > 2.0 * PI {
+            angle -= 2.0 * PI;
+        }
+
+        // Pause pour ralentir l'animation
+        sleep(Duration::from_millis(50));
     }
-
-    // Dessine une ligne verticale avec Ligne
-    Ligne {
-        x1: 200,
-        y1: 200,
-        x2: 700,
-        y2: 700,
-    }
-    .dessiner(framebuffer.iter_mut(), stride_pixels+10, height, 0x00FF0000);
-
-    Ok(())
 }
