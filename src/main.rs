@@ -9,17 +9,22 @@
 
 mod ApiGraphique;
 use crate::ApiGraphique::Buffer::FrammeBufferDevice::FrameBufferDevice;
+use crate::ApiGraphique::FormePrimitive::IForme::IForme;
+use crate::ApiGraphique::FormePrimitive::Ligne::Ligne;
 
 use std::io::Result;
 
 fn main() -> Result<()> {
-    let mut framebuffer = FrameBufferDevice::new(1366, 768, 0)?; // Crée un nouveau framebuffer avec une largeur de 800 pixels et une hauteur de 600 pixels
+    let mut framebuffer = FrameBufferDevice::new(1366, 768, 0)?;
 
-    
     // Remplit tout l'écran en blanc (XRGB8888)
     for pixel in framebuffer.iter_mut() {
         *pixel = 0x00FFFFFF;
     }
-    
+
+    // Dessine une ligne rouge du coin haut gauche au coin bas droit
+    let ligne = Ligne { x1: 0, y1: 0, x2: 600, y2: 600 };
+    ligne.dessiner(framebuffer.iter_mut(), 1366, 768, 0x00FF0000);
+
     Ok(())
 }
